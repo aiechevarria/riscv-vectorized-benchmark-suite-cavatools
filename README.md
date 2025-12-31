@@ -1,5 +1,8 @@
 # RiVEC Bencmark Suite
 
+## Cavatools
+For Cavatools compilation instructions, check [the CAVATOOLS.md file](./CAVATOOLS.md)
+
 ## Overview
 
 The RiVEC Benchmark Suite is a collection composed of data-parallel applications from different domains. The suite focuses on benchmarking vector microarchitectures. Current implementation is targeting RISC-V Architectures; however, it can be easily ported to any Vector/SIMD ISA thanks to a wrapper library which we developed to map vector intrinsics and math functions to the target architecture.
