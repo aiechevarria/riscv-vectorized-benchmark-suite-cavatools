@@ -33,7 +33,7 @@ struct ParallelB {
     randZ = randZ_;
     BLOCKSIZE = BLOCKSIZE_;
     iN = iN_; 
-    /*fprintf(stderr,"(Construction object) pdZ=0x%08x, randZ=0x%08x\n",
+    /*// fprintf(stderr,"(Construction object) pdZ=0x%08x, randZ=0x%08x\n",
       pdZ, randZ);*/
 
   }
@@ -43,13 +43,13 @@ struct ParallelB {
     int begin = range.begin();
     int end   = range.end();
     int b,j;
-    /*fprintf(stderr,"B: Thread %d from %d to %d. l=%d pdZ=0x%08x, BLOCKSIZE=%d, iN=%d\n",
+    /*// fprintf(stderr,"B: Thread %d from %d to %d. l=%d pdZ=0x%08x, BLOCKSIZE=%d, iN=%d\n",
       pthread_self(), begin, end, l,(int)pdZ,BLOCKSIZE,iN); */
 
     for(b=begin; b!=end; b++) {
       for (j=1;j<=iN-1;++j){
 	pdZ[l][BLOCKSIZE*j + b]= CumNormalInv(randZ[l][BLOCKSIZE*j + b]);  /* 18% of the total executition time */
-	//fprintf(stderr,"%d (%d, %d): [%d][%d]=%e\n",pthread_self(), begin, end,  l,BLOCKSIZE*j+b,pdZ[l][BLOCKSIZE*j + b]);
+	//// // fprintf(stderr,"%d (%d, %d): [%d][%d]=%e\n",pthread_self(), begin, end,  l,BLOCKSIZE*j+b,pdZ[l][BLOCKSIZE*j + b]);
       }
     }
 
