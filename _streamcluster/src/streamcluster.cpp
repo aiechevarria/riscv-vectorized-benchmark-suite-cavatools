@@ -1742,54 +1742,54 @@ void* localSearchSub(void* arg_) {
   return NULL;
 }
 
-#ifdef TBB_VERSION
-void localSearch( Points* points, long kmin, long kmax, long* kfinal ) {
-  pkmedian_arg_t arg;
-  arg.points = points;
-  arg.kmin = kmin;
-  arg.kmax = kmax;
-  arg.pid = 0;
-  arg.kfinal = kfinal;
-  localSearchSub(&arg);
-}
-#else //!TBB_VERSION
+// #ifdef TBB_VERSION
+// void localSearch( Points* points, long kmin, long kmax, long* kfinal ) {
+//   pkmedian_arg_t arg;
+//   arg.points = points;
+//   arg.kmin = kmin;
+//   arg.kmax = kmax;
+//   arg.pid = 0;
+//   arg.kfinal = kfinal;
+//   localSearchSub(&arg);
+// }
+// #else //!TBB_VERSION
 
-void localSearch( Points* points, long kmin, long kmax, long* kfinal ) {
-    pthread_barrier_t barrier;
-    pthread_t* threads = new pthread_t[nproc];
-    pkmedian_arg_t* arg = new pkmedian_arg_t[nproc];
+// void localSearch( Points* points, long kmin, long kmax, long* kfinal ) {
+//     pthread_barrier_t barrier;
+//     pthread_t* threads = new pthread_t[nproc];
+//     pkmedian_arg_t* arg = new pkmedian_arg_t[nproc];
 
-#ifdef ENABLE_THREADS
-    pthread_barrier_init(&barrier,NULL,nproc);
-#endif
-    for( int i = 0; i < nproc; i++ ) {
-      arg[i].points = points;
-      arg[i].kmin = kmin;
-      arg[i].kmax = kmax;
-      arg[i].pid = i;
-      arg[i].kfinal = kfinal;
+// #ifdef ENABLE_THREADS
+//     pthread_barrier_init(&barrier,NULL,nproc);
+// #endif
+//     for( int i = 0; i < nproc; i++ ) {
+//       arg[i].points = points;
+//       arg[i].kmin = kmin;
+//       arg[i].kmax = kmax;
+//       arg[i].pid = i;
+//       arg[i].kfinal = kfinal;
 
-      arg[i].barrier = &barrier;
-#ifdef ENABLE_THREADS
-      pthread_create(threads+i,NULL,localSearchSub,(void*)&arg[i]);
-#else
-      localSearchSub(&arg[0]);
-#endif
-    }
+//       arg[i].barrier = &barrier;
+// #ifdef ENABLE_THREADS
+//       pthread_create(threads+i,NULL,localSearchSub,(void*)&arg[i]);
+// #else
+//       localSearchSub(&arg[0]);
+// #endif
+//     }
 
-#ifdef ENABLE_THREADS
-    for ( int i = 0; i < nproc; i++) {
-      pthread_join(threads[i],NULL);
-    }
-#endif
+// #ifdef ENABLE_THREADS
+//     for ( int i = 0; i < nproc; i++) {
+//       pthread_join(threads[i],NULL);
+//     }
+// #endif
 
-    delete[] threads;
-    delete[] arg;
-#ifdef ENABLE_THREADS
-    pthread_barrier_destroy(&barrier);
-#endif
-}
-#endif // TBB_VERSION
+//     delete[] threads;
+//     delete[] arg;
+// #ifdef ENABLE_THREADS
+//     pthread_barrier_destroy(&barrier);
+// #endif
+// }
+// #endif // TBB_VERSION
 
 
 class PStream {
@@ -1956,52 +1956,51 @@ void streamCluster( PStream* stream,
     center_table = (int*)malloc(points.num*sizeof(int));
 #endif
 
-
     //fprintf(stderr,"center_table = 0x%08x\n",(int)center_table);
     //fprintf(stderr,"is_center = 0x%08x\n",(int)is_center);
 
-    localSearch(&points,kmin, kmax,&kfinal); // parallel
+    // localSearch(&points,kmin, kmax,&kfinal); // parallel
 
     //fprintf(stderr,"finish local search\n");
-    contcenters(&points); /* sequential */
-    if( kfinal + centers.num > centersize ) {
-      //here we don't handle the situation where # of centers gets too large. 
-      fprintf(stderr,"oops! no more space for centers\n");
-      exit(1);
-    }
+//     contcenters(&points); /* sequential */
+//     if( kfinal + centers.num > centersize ) {
+//       //here we don't handle the situation where # of centers gets too large. 
+//       fprintf(stderr,"oops! no more space for centers\n");
+//       exit(1);
+//     }
 
-    copycenters(&points, &centers, centerIDs, IDoffset); /* sequential */
-    IDoffset += numRead;
+//     copycenters(&points, &centers, centerIDs, IDoffset); /* sequential */
+//     IDoffset += numRead;
 
-#ifdef TBB_VERSION
-    memoryBool.deallocate(switch_membership, sizeof(bool));
-    free(is_center);
-    memoryInt.deallocate(center_table, sizeof(int));
-#else
-    free(is_center);
-    free(switch_membership);
-    free(center_table);
-#endif
+// #ifdef TBB_VERSION
+//     memoryBool.deallocate(switch_membership, sizeof(bool));
+//     free(is_center);
+//     memoryInt.deallocate(center_table, sizeof(int));
+// #else
+//     free(is_center);
+//     free(switch_membership);
+//     free(center_table);
+// #endif
 
     if( stream->feof() ) {
       break;
     }
   }
 
-  //finally cluster all temp centers
-#ifdef TBB_VERSION
-  switch_membership = (bool*)memoryBool.allocate(centers.num*sizeof(bool));
-  is_center = (bool*)calloc(centers.num,sizeof(bool));
-  center_table = (int*)memoryInt.allocate(centers.num*sizeof(int));
-#else
-  switch_membership = (bool*)malloc(centers.num*sizeof(bool));
-  is_center = (bool*)calloc(centers.num,sizeof(bool));
-  center_table = (int*)malloc(centers.num*sizeof(int));
-#endif
+//   //finally cluster all temp centers
+// #ifdef TBB_VERSION
+//   switch_membership = (bool*)memoryBool.allocate(centers.num*sizeof(bool));
+//   is_center = (bool*)calloc(centers.num,sizeof(bool));
+//   center_table = (int*)memoryInt.allocate(centers.num*sizeof(int));
+// #else
+//   switch_membership = (bool*)malloc(centers.num*sizeof(bool));
+//   is_center = (bool*)calloc(centers.num,sizeof(bool));
+//   center_table = (int*)malloc(centers.num*sizeof(int));
+// #endif
 
-  localSearch( &centers, kmin, kmax ,&kfinal ); // parallel
-  contcenters(&centers);
-  outcenterIDs( &centers, centerIDs, outfile);
+  // localSearch( &centers, kmin, kmax ,&kfinal ); // parallel
+  // contcenters(&centers);
+  // outcenterIDs( &centers, centerIDs, outfile);
 }
 
 int main(int argc, char **argv)
