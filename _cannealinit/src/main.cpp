@@ -44,10 +44,10 @@
 * Barcelona Supercomputing Center (2020)
 *************************************************************************/
 
-#ifdef USE_RISCV_VECTOR
-#include <riscv_vector.h>
-#include "../../common/vector_defines.h"
-#endif
+// #ifdef USE_RISCV_VECTOR
+// #include <riscv_vector.h>
+// #include "../../common/vector_defines.h"
+// #endif
 
 #ifdef ENABLE_THREADS
 #include <pthread.h>

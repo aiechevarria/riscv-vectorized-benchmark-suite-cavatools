@@ -46,10 +46,10 @@ using std::endl;
 #include <stdlib.h>
 
 // RISC-V VECTOR Version by Cristóbal Ramírez Lazo, "Barcelona 2019"
-#ifdef USE_RISCV_VECTOR
-#include <riscv_vector.h>
-#include "../../common/vector_defines.h"
-#endif
+// #ifdef USE_RISCV_VECTOR
+// #include <riscv_vector.h>
+// #include "../../common/vector_defines.h"
+// #endif
 
 //*****************************************************************************************
 //
@@ -68,49 +68,49 @@ void annealer_thread::Run()
 
     int temp_steps_completed=0;
 
-    #ifdef USE_RISCV_VECTOR
-    unsigned long int gvl   = __riscv_vsetvlmax_e32m1();
-    mask = (int*)malloc(gvl*sizeof(int));
-    for(int i=0 ; i<=gvl ; i=i+1) { mask[i]=0x55555555; }
-    #endif // !USE_RISCV_VECTOR
+//     #ifdef USE_RISCV_VECTOR
+//     unsigned long int gvl   = __riscv_vsetvlmax_e32m1();
+//     mask = (int*)malloc(gvl*sizeof(int));
+//     for(int i=0 ; i<=gvl ; i=i+1) { mask[i]=0x55555555; }
+//     #endif // !USE_RISCV_VECTOR
 
-    while(keep_going(temp_steps_completed, accepted_good_moves, accepted_bad_moves)){
-        T = T / 1.5;
-        accepted_good_moves = 0;
-        accepted_bad_moves = 0;
+//     while(keep_going(temp_steps_completed, accepted_good_moves, accepted_bad_moves)){
+//         T = T / 1.5;
+//         accepted_good_moves = 0;
+//         accepted_bad_moves = 0;
 
-        for (int i = 0; i < _moves_per_thread_temp; i++){
-            a = b;
-            a_id = b_id;
-            b = _netlist->get_random_element(&b_id, a_id, &rng);
-    #ifdef USE_RISCV_VECTOR
-            routing_cost_t delta_cost = calculate_delta_routing_cost_vector(a,b/*,xMask*/);
-    #else // !USE_RISCV_VECTOR
-            routing_cost_t delta_cost = calculate_delta_routing_cost(a,b);
-    #endif // !USE_RISCV_VECTOR
+//         for (int i = 0; i < _moves_per_thread_temp; i++){
+//             a = b;
+//             a_id = b_id;
+//             b = _netlist->get_random_element(&b_id, a_id, &rng);
+//     #ifdef USE_RISCV_VECTOR
+//             routing_cost_t delta_cost = calculate_delta_routing_cost_vector(a,b/*,xMask*/);
+//     #else // !USE_RISCV_VECTOR
+//             routing_cost_t delta_cost = calculate_delta_routing_cost(a,b);
+//     #endif // !USE_RISCV_VECTOR
 
-            move_decision_t is_good_move = accept_move(delta_cost, T, &rng);
+//             move_decision_t is_good_move = accept_move(delta_cost, T, &rng);
 
-            //make the move, and update stats:
-            if (is_good_move == move_decision_accepted_bad){
-                accepted_bad_moves++;
-                _netlist->swap_locations(a,b);
-            } else if (is_good_move == move_decision_accepted_good){
-                accepted_good_moves++;
-                _netlist->swap_locations(a,b);
-            } else if (is_good_move == move_decision_rejected){
-                //no need to do anything for a rejected move
-            }
-        }
+//             //make the move, and update stats:
+//             if (is_good_move == move_decision_accepted_bad){
+//                 accepted_bad_moves++;
+//                 _netlist->swap_locations(a,b);
+//             } else if (is_good_move == move_decision_accepted_good){
+//                 accepted_good_moves++;
+//                 _netlist->swap_locations(a,b);
+//             } else if (is_good_move == move_decision_rejected){
+//                 //no need to do anything for a rejected move
+//             }
+//         }
 
-        temp_steps_completed++;
-#ifdef ENABLE_THREADS
-        pthread_barrier_wait(&_barrier);
-#endif
-    }
-#ifdef USE_RISCV_VECTOR
-    free(mask);
-#endif // !USE_RISCV_VECTOR
+//         temp_steps_completed++;
+// #ifdef ENABLE_THREADS
+//         pthread_barrier_wait(&_barrier);
+// #endif
+//     }
+// #ifdef USE_RISCV_VECTOR
+//     free(mask);
+// #endif // !USE_RISCV_VECTOR
 }
 
 //*****************************************************************************************

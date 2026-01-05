@@ -211,14 +211,14 @@ netlist::netlist(const std::string& filename)
 			netlist_elem* fanin_elem = create_elem_if_necessary(fanin_name);
 			present_elem->fanin.push_back(fanin_elem);
 			fanin_elem->fanout.push_back(present_elem);
-#ifdef USE_RISCV_VECTOR
-			unsigned long * fanin_location = (unsigned long *)&fanin_elem->present_loc;
-			present_elem->fan_locs.push_back(fanin_location);
-			unsigned long * fanout_location = (unsigned long *)&present_elem->present_loc;
-			fanin_elem->fan_locs.push_back(fanout_location);
-			//printf("fanin_elem->present_loc a 0x%x \n", fanin_location );
-			//printf("fanin_elem->present_loc a 0x%x \n", fanout_location );
-#endif
+// #ifdef USE_RISCV_VECTOR
+// 			unsigned long * fanin_location = (unsigned long *)&fanin_elem->present_loc;
+// 			present_elem->fan_locs.push_back(fanin_location);
+// 			unsigned long * fanout_location = (unsigned long *)&present_elem->present_loc;
+// 			fanin_elem->fan_locs.push_back(fanout_location);
+// 			//printf("fanin_elem->present_loc a 0x%x \n", fanin_location );
+// 			//printf("fanin_elem->present_loc a 0x%x \n", fanout_location );
+// #endif
 
 		}//while (fin >> fanin_name)
 

@@ -46,9 +46,9 @@ using namespace std;
 * Barcelona Supercomputing Center (2020)
 *************************************************************************/
 
-#ifdef USE_RISCV_VECTOR
-#include "../../common/vector_defines.h"
-#endif
+// #ifdef USE_RISCV_VECTOR
+// #include "../../common/vector_defines.h"
+// #endif
 
 netlist_elem::netlist_elem()
 :present_loc(NULL)//start with the present_loc as nothing at all.  Filled in later by the netlist
