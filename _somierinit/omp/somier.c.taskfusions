@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <assert.h>
-#include "../somier.h"
+#include "somier.h"
 
 
 void init_X (int n, double (*X)[n][n][n])
@@ -94,6 +94,7 @@ inline void acceleration(int n, double (*A)[n][n][n], double (*F)[n][n][n], doub
 //#dear compiler: please fuse next two loops if you can 
    for (i = 0; i<n; i++)
       for (j = 0; j<n; j++)
+         #pragma omp task depend(out:A[0][i][j][0:n]), in:F[0][i][j][0:n])
          for (k = 0; k<n; k++) {
             A[0][i][j][k]= F[0][i][j][k]/M;
             A[1][i][j][k]= F[1][i][j][k]/M;
@@ -108,9 +109,8 @@ inline void velocities(int n, double (*V)[n][n][n], double (*A)[n][n][n], double
    int i, j, k;
 //#dear compiler: please fuse next two loops if you can 
    for (i = 0; i<n; i++)
-//      #pragma omp task
-//      #pragma omp unroll
       for (j = 0; j<n; j++) {
+         #pragma omp task depend(in:A[0][i][j][0:n]), inout:V[0][i][j][0:n])
 	 #pragma omp simd
          for (k = 0; k<n; k++) {
                V[0][i][j][k] += A[0][i][j][k]*dt;
@@ -126,26 +126,11 @@ void positions(int n, double (*X)[n][n][n], double (*V)[n][n][n], double dt)
 //#dear compiler: please fuse next two loops if you can 
    for (i = 0; i<n; i++)
       for (j = 0; j<n; j++)
+         
          for (k = 0; k<n; k++) {
                X[0][i][j][k] += V[0][i][j][k]*dt;
                X[1][i][j][k] += V[1][i][j][k]*dt;
                X[2][i][j][k] += V[2][i][j][k]*dt;
             }
-}
-
-void compute_stats(int n, double (*X)[n][n][n], double Xcenter[3])
-{
-   for (int i = 0; i<n; i++) {
-      for (int j = 0; j<n; j++) {
-         for (int k = 0; k<n; k++) {
-             Xcenter[0] += X[0][i][j][k];
-             Xcenter[1] += X[1][i][j][k];
-             Xcenter[2] += X[2][i][j][k];
-         }
-      }
-   }
-   Xcenter[0] /= (n*n*n);
-   Xcenter[1] /= (n*n*n);
-   Xcenter[2] /= (n*n*n);
 }
 

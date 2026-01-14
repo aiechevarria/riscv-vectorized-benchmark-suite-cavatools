@@ -15,7 +15,7 @@
 #include "../somier.h"
 
 #ifdef USE_RISCV_VECTOR
-#include "../common/vector_defines.h"
+#include "../../common/vector_defines.h"
 #endif
 
 static int count2=0;
