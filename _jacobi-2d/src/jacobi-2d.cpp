@@ -30,6 +30,10 @@
 #include "../../common/vector_defines.h"
 #endif
 
+
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 using namespace std;
 #define DATA_TYPE double
 #define RESULT_PRINT
@@ -52,6 +56,8 @@ void init_array (int n, DATA_TYPE **A, DATA_TYPE **B)
 #ifdef USE_RISCV_VECTOR
 void kernel_jacobi_2d_vector(int tsteps,int n, DATA_TYPE **A,DATA_TYPE **B)
 {
+    ROI_START();
+
     _MMR_f64    xU;
     _MMR_f64    xUtmp;
     _MMR_f64    xUtmp2;
@@ -98,6 +104,7 @@ void kernel_jacobi_2d_vector(int tsteps,int n, DATA_TYPE **A,DATA_TYPE **B)
             _MM_STORE_f64(&B[i][j], xUtmp,gvl);
         }
     }
+    ROI_END();
 }
 #endif
 

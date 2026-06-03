@@ -5,6 +5,9 @@
 #include "HJM.h"
 #include "nr_routines.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifdef TBB_VERSION
 #include <pthread.h>
 #include "tbb/task_scheduler_init.h"
@@ -66,7 +69,7 @@ void serialB(FTYPE **pdZ, FTYPE **randZ, int BLOCKSIZE, int iN, int iFactors)
 
 
 #ifdef USE_RISCV_VECTOR
-
+	ROI_START();
     for(int l=0;l<=iFactors-1;++l){
         for (int j=1;j<=iN-1;++j){
             //for(int b=0; b<BLOCKSIZE; b+=BLOCKSIZE){
@@ -75,6 +78,7 @@ void serialB(FTYPE **pdZ, FTYPE **randZ, int BLOCKSIZE, int iN, int iFactors)
             //}
         }
     }
+	ROI_END();
 
 #else
 
@@ -127,7 +131,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,	//Matrix that stores genera
 	// At time step 0: insert expected drift 
 	// rest reset to 0
 #ifdef USE_RISCV_VECTOR
-
+	ROI_START();
 	unsigned long int gvl = _MMR_VSETVL_E64M1(BLOCKSIZE);
 	_MMR_f64 xZero;
 
@@ -140,6 +144,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,	//Matrix that stores genera
 	    	} //initializing HJMPath to zero
         }
     //}
+	ROI_END();
 
 #else
  	for(int b=0; b<BLOCKSIZE; b++){
@@ -229,7 +234,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,	//Matrix that stores genera
 
 
 #ifdef USE_RISCV_VECTOR
-
+	ROI_START();
 	FTYPE pdDriftxddelt;
  	// =====================================================
 	// Generation of HJM Path1 Vector
@@ -252,6 +257,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,	//Matrix that stores genera
 	    }
 	  }
 	//} // end Blocks
+	ROI_END();
 
 #else
  	// =====================================================

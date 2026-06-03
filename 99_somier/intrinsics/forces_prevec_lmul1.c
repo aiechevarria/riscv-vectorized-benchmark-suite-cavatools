@@ -15,6 +15,9 @@
 #include "../somier.h"
 #include "somier_v.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifdef USE_RISCV_VECTOR
 #include "../../common/vector_defines.h"
 #endif
@@ -47,6 +50,7 @@ void force_contr_prevec(int n, double (*X)[n][n][n], double (*F)[n][n][n], int i
 inline void force_contr_vec(int n, double (*X)[n][n][n], double (*F)[n][n][n], int i, int j, int neig_i, int neig_j);
 void force_contr_vec(int n, double (*X)[n][n][n], double (*F)[n][n][n], int i, int j, int neig_i, int neig_j)
 {
+   ROI_START();
    unsigned long gvl = _MMR_VSETVL_E64M1(n);
 
    _MMR_f64 v_1        = _MM_SET_f64(1.0, gvl);
@@ -88,10 +92,13 @@ void force_contr_vec(int n, double (*X)[n][n][n], double (*F)[n][n][n], int i, i
 
       k += gvl;
    }
+
+   ROI_END();
 }
 
 void k_force_contr_vec(int n, double (*X)[n][n][n], double (*F)[n][n][n], int i, int j)
 {
+   ROI_START();
    long gvl = _MMR_VSETVL_E64M1(n);
 
    _MMR_f64 v_1        = _MM_SET_f64(1.0, gvl);
@@ -159,6 +166,8 @@ void k_force_contr_vec(int n, double (*X)[n][n][n], double (*F)[n][n][n], int i,
 
       k += gvl;
    }
+
+   ROI_END();
 }
 
 

@@ -14,6 +14,9 @@
 #include <assert.h>
 #include "../somier.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifdef USE_RISCV_VECTOR
 #include "../../common/vector_defines.h"
 #endif
@@ -22,6 +25,7 @@ static int count2=0;
 
 void accel_intr(int n, double (*A)[n][n][n], double (*F)[n][n][n], double M)
 {
+   ROI_START();
    int i, j, k;
    unsigned long int rvl, gvl;
    _MMR_f64 vF0, vF1, vF2, vA0, vA1, vA2;
@@ -49,6 +53,7 @@ void accel_intr(int n, double (*A)[n][n][n], double (*F)[n][n][n], double M)
             k+=gvl;
 	 }
 
+    ROI_END();
 }
 
 #undef COLAPSED
@@ -73,6 +78,7 @@ void vel_intr(int n, double (*V)[n][n][n], double (*A)[n][n][n], double dt)
          for (k = 0; k<n; ) {
             rvl = n-k;
 #endif
+            ROI_START();
             gvl = _MMR_VSETVL_E64M1(rvl);
             _MMR_f64 vdt = _MM_SET_f64(dt, gvl);
 
@@ -89,6 +95,7 @@ void vel_intr(int n, double (*V)[n][n][n], double (*A)[n][n][n], double dt)
             vA2 = _MM_LOAD_f64( &A[2][i][j][k], gvl );
             vV2 = _MM_MACC_f64(vV2, vA2, vdt, gvl);
             _MM_STORE_f64(&V[2][i][j][k], vV2, gvl);
+            ROI_END();
 
 //#ifndef COLAPSED
 #if 0
@@ -105,10 +112,11 @@ void vel_intr(int n, double (*V)[n][n][n], double (*A)[n][n][n], double dt)
 
 void pos_intr(int n, double (*X)[n][n][n], double (*V)[n][n][n], double dt)
 {
+   ROI_START();
+
    int i, j, k;
    unsigned long int rvl, gvl;
    _MMR_f64 vV0, vV1, vV2, vX0, vX1, vX2;
-
 
    for (i = 0; i<n; i++) {
       for (j = 0; j<n; j++) {
@@ -135,6 +143,8 @@ void pos_intr(int n, double (*X)[n][n][n], double (*V)[n][n][n], double dt)
          }
       }
    }
+   ROI_END();
+
    // would need to check that possition des not go beyond the box walls
 }
 //      for (i = 0; i<N; i++)

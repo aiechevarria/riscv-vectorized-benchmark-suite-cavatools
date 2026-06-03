@@ -37,6 +37,9 @@
 #include "location_t.h"
 #include "netlist_elem.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 using namespace std;
 
 /*************************************************************************
@@ -88,6 +91,7 @@ routing_cost_t netlist_elem::routing_cost_given_loc(location_t loc)
 #ifdef USE_RISCV_VECTOR
 routing_cost_t netlist_elem::swap_cost_vector(_MMR_i32 xOld_loc ,_MMR_i32 xNew_loc ,int fan_size)
 {
+    ROI_START();
 	routing_cost_t no_swap = 0;
 	routing_cost_t yes_swap = 0;
 
@@ -145,6 +149,8 @@ routing_cost_t netlist_elem::swap_cost_vector(_MMR_i32 xOld_loc ,_MMR_i32 xNew_l
 
     xresult_yes_swap = _MM_REDSUM_f32(xYes_Swap,xresult_yes_swap,gvl);
     yes_swap = _MM_VGETFIRST_f32(xresult_yes_swap);
+
+    ROI_END();
 
     return (double)(yes_swap - no_swap);
 }

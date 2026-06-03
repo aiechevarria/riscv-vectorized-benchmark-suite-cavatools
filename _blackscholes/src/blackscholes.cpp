@@ -21,6 +21,9 @@
 
 #include "../../common/riscv_util.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #include <time.h>
 #include <sys/time.h>
 
@@ -430,10 +433,13 @@ int bs_thread(void *tid_ptr) {
     int start = tid * (numOptions / nThreads);
     int end = start + (numOptions / nThreads);
 
+
+    ROI_START();
     unsigned long int gvl = __riscv_vsetvl_e32m1(end);
     //fptype* price;
     //price = (fptype*)malloc(gvl*sizeof(fptype));
     //price = aligned_alloc(64, gvl*sizeof(fptype));
+    ROI_END();
 
 #ifdef ENABLE_PARSEC_HOOKS
     __parsec_thread_begin();
@@ -448,6 +454,7 @@ int bs_thread(void *tid_ptr) {
 #endif //ENABLE_OPENMP
             // Calling main function to calculate option value based on Black & Scholes's
             // equation.
+            ROI_START();
             gvl = __riscv_vsetvl_e32m1(end-i);
             BlkSchlsEqEuroNoDiv_vector( &(prices[i]), gvl, &(sptprice[i]), &(strike[i]),
                                 &(rate[i]), &(volatility[i]), &(otime[i]), &(otype[i])/*,&(otype_d[i])*/, 0,gvl);
@@ -463,6 +470,8 @@ int bs_thread(void *tid_ptr) {
                     numError ++;
                 }
             }
+
+            ROI_END();
 #endif
         }
     }

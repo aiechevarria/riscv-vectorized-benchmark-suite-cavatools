@@ -8,6 +8,9 @@
 #include <fstream>
 #include <string>
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 using namespace std;
 
 /*************************************************************************
@@ -187,6 +190,7 @@ void run_vector()
             result[x] = wall[x];
         }
         dst = result;
+        ROI_START();
 
         size_t gvl = __riscv_vsetvl_e32m1(cols);
 
@@ -217,6 +221,8 @@ void run_vector()
             }
         }
     }
+    ROI_END();
+
     long long end = get_time();
     printf("TIME TO FIND THE SMALLEST PATH: %f\n", elapsed_time(start, end));
 

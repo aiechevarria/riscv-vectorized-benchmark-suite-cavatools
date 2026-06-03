@@ -1,12 +1,22 @@
 #!/bin/bash
 
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/CumNormalInv.o src/CumNormalInv.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/MaxFunction.o src/MaxFunction.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/RanUnif.o src/RanUnif.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/nr_routines.o src/nr_routines.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/icdf.o src/icdf.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/HJM_SimPath_Forward_Blocking.o src/HJM_SimPath_Forward_Blocking.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/HJM.o src/HJM.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/HJM_Swaption_Blocking.o src/HJM_Swaption_Blocking.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -c -o src/HJM_Securities.o src/HJM_Securities.cpp
-/opt/riscv-gcc-new/bin/riscv64-unknown-linux-gnu-g++ -march=rv64gv -DUSE_RISCV_VECTOR -g -static -O2 -o bin/swaptions_cava.out src/*.o -lm
+# Do not automatically vectorize, instead use the intrinsics
+FLAGS="-march=rv64gv \
+-DUSE_RISCV_VECTOR \
+-g -static -O2 \
+-fno-tree-vectorize \
+-fno-tree-slp-vectorize"
+
+# Cava requires an old GCC version. Newer ones will cause a segmentation fault 
+COMP="/opt/riscv-gcc-13.2.0/bin/riscv64-unknown-linux-gnu-g++"
+
+$COMP $FLAGS -c -o src/CumNormalInv.o src/CumNormalInv.cpp
+$COMP $FLAGS -c -o src/MaxFunction.o src/MaxFunction.cpp
+$COMP $FLAGS -c -o src/RanUnif.o src/RanUnif.cpp
+$COMP $FLAGS -c -o src/nr_routines.o src/nr_routines.cpp
+$COMP $FLAGS -c -o src/icdf.o src/icdf.cpp
+$COMP $FLAGS -c -o src/HJM_SimPath_Forward_Blocking.o src/HJM_SimPath_Forward_Blocking.cpp
+$COMP $FLAGS -c -o src/HJM.o src/HJM.cpp
+$COMP $FLAGS -c -o src/HJM_Swaption_Blocking.o src/HJM_Swaption_Blocking.cpp
+$COMP $FLAGS -c -o src/HJM_Securities.o src/HJM_Securities.cpp
+$COMP $FLAGS -o bin/swaptions_cava.out src/*.o -lm

@@ -17,9 +17,12 @@
 #include "vector_defines.h"
 #endif
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifdef USE_RISCV_VECTOR
 void spmv_intrinsics(const size_t nrows, double *a, uint64_t *ia, uint64_t *ja, double *x, double *y) {
-    
+    ROI_START();
     _MMR_f64 va;
     _MMR_u64 v_idx_row;
     _MMR_f64 vx;
@@ -51,6 +54,7 @@ void spmv_intrinsics(const size_t nrows, double *a, uint64_t *ia, uint64_t *ja, 
             y[row]    = _MM_VGETFIRST_f64(part_res);
         }
     }
+    ROI_END();
 }
 #else
 void spmv_serial(const size_t nrows, double *a, uint64_t *ia, uint64_t *ja, double *x, double *y) {

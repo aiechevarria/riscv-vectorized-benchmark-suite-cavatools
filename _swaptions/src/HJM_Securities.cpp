@@ -20,6 +20,9 @@
 #include "HJM_Securities.h"
 #include "HJM_type.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifdef ENABLE_THREADS
 #include <pthread.h>
 #define MAX_THREAD 1024
@@ -114,6 +117,7 @@ void * worker(void *arg){
     for(int i=beg; i < end; i++) {
 
       #ifdef USE_RISCV_VECTOR
+        ROI_START();
         // Vector seed to get the randon number with vector code
         unsigned long int gvl = _MMR_VSETVL_E64M1(NUM_TRIALS);
         swaption_seed_vector = (long*)malloc(gvl*sizeof(long));
@@ -121,6 +125,7 @@ void * worker(void *arg){
         swaption_seed_vector[j] = swaption_seed + j + (i * gvl);
         }
         BLOCK_SIZE_AUX = gvl;
+        ROI_END();
       #else
         swaption_seed_vector = (long*)malloc(1*sizeof(long));
         swaption_seed_vector[0] = swaption_seed + i;

@@ -25,6 +25,9 @@
 
 #include "../../common/riscv_util.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 //#include <omp.h>
 #include <limits.h>
 #define PI 3.1415926535897932
@@ -617,6 +620,9 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
     for(x = 0; x < Nparticles; x++){
         weights[x] = 1/((double)(Nparticles));
     }*/
+
+    ROI_START();
+
     unsigned long int gvl = __riscv_vsetvl_e64m1(Nparticles);
 
     _MMR_f64    xweights = _MM_SET_f64(1.0/((double)(Nparticles)),gvl);
@@ -624,6 +630,8 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
         gvl     = __riscv_vsetvl_e64m1(Nparticles-x);
         _MM_STORE_f64(&weights[x],xweights,gvl);
     }
+
+    ROI_END();
 
     long long get_weights = get_time();
     // printf("TIME TO GET WEIGHTSTOOK: %f\n", elapsed_time(get_neighbors, get_weights));
@@ -646,6 +654,8 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
         arrayY[x] = ye;
     }
     */
+
+    ROI_START();
     gvl     = __riscv_vsetvl_e64m1(Nparticles);
     _MMR_f64    xArrayX = _MM_SET_f64(xe,gvl);
     _MMR_f64    xArrayY = _MM_SET_f64(ye,gvl);
@@ -657,10 +667,12 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
     
 
     _MMR_f64    xAux;
+    ROI_END();
 
     int k;
     // printf("TIME TO SET ARRAYS TOOK: %f\n", elapsed_time(get_weights, get_time()));
     int indX, indY;
+
 
 
     for(k = 1; k < Nfr; k++){
@@ -668,6 +680,8 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
         //apply motion model
         //draws sample from motion model (random walk). The only prior information
         //is that the object moves 2x as fast as in the y direction
+
+        ROI_START();
         gvl     = __riscv_vsetvl_e64m1(Nparticles);
         for(x = 0; x < Nparticles; x=x+gvl){
             gvl     = __riscv_vsetvl_e64m1(Nparticles-x);
@@ -685,6 +699,7 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
             xArrayY = _MM_ADD_f64(xAux, xArrayY ,gvl); 
             _MM_STORE_f64(&arrayY[x],xArrayY,gvl);
         }
+        ROI_END();
 
         /*
         //#pragma omp parallel for shared(arrayX, arrayY, Nparticles, seed) private(x)
@@ -783,6 +798,8 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
 
         long int vector_complete;
         long int valid;
+
+        ROI_START();
         gvl     = __riscv_vsetvl_e64m1(Nparticles);
         for(i = 0; i < Nparticles; i=i+gvl){
             gvl     = __riscv_vsetvl_e64m1(Nparticles-i);
@@ -811,6 +828,7 @@ void particleFilter_vector(int * I, int IszX, int IszY, int Nfr, int * seed, int
             //_MM_STORE_f64(&yj[i],xarrayY,gvl);
             // This commented lines corresponds to the scalar code below
         }
+        ROI_END();
 
         /*
         for(j = 0; j < Nparticles; j++){

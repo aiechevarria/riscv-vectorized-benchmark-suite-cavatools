@@ -1,3 +1,6 @@
+.gitignore
 *.swp
 output/
 m5out/
+*.o
+.vscode/*

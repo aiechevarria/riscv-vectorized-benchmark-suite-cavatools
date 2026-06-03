@@ -24,6 +24,9 @@
 #include <sys/resource.h>
 #include <limits.h>
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifdef USE_RISCV_VECTOR
 #include "../../common/vector_defines.h"
 #endif
@@ -665,6 +668,7 @@ void intshuffle(int *intarray, int length)
 float dist(Point p1, Point p2, int dim )
 {
 #ifdef USE_RISCV_VECTOR
+  ROI_START();
   float result=0.0;
   int i;
   unsigned long int gvl = _MMR_VSETVL_E32M1(dim);
@@ -685,6 +689,7 @@ float dist(Point p1, Point p2, int dim )
   }
   result2 = _MM_REDSUM_f32(result1,result2,gvl);
   result = _MM_VGETFIRST_f32(result2);
+  ROI_END();
   //printf("result = %f \n",result);
   return result;
 #else // USE_RISCV_VECTOR

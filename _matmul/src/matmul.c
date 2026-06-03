@@ -8,6 +8,9 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #define DATA_TYPE 
 typedef double data_t;
 
@@ -16,7 +19,7 @@ typedef double data_t;
 #include "../../common/vector_defines.h"
 
 void matrixmul_intrinsics(data_t *a, data_t *b, data_t *c, int n, int m, int p) {
-
+    ROI_START();
     for (size_t i = 0; i < m; i++) {
         for (size_t j = 0; j < n; j++) {
             size_t gvl = _MMR_VSETVL_E64M1(p);
@@ -40,6 +43,7 @@ void matrixmul_intrinsics(data_t *a, data_t *b, data_t *c, int n, int m, int p) 
             c[i*n+j] = _MM_VGETFIRST_f64(vsum);
         }//j
     }//i
+    ROI_END();
 }
 
 

@@ -17,6 +17,9 @@
 #include <stdlib.h>
 #include "HJM_type.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 
 FTYPE RanUnif( long *s );
 void RanUnif_vector( long *s , int iFactors , int iN ,int  BLOCKSIZE, FTYPE **randZ);
@@ -42,6 +45,7 @@ FTYPE RanUnif( long *s )
 
 void RanUnif_vector( long *s , int iFactors , int iN ,int  BLOCKSIZE , FTYPE **randZ )
 {
+  ROI_START();
   // uniform random number generator
   unsigned long int gvl = _MMR_VSETVL_E64M1(BLOCKSIZE);
 
@@ -69,6 +73,7 @@ void RanUnif_vector( long *s , int iFactors , int iN ,int  BLOCKSIZE , FTYPE **r
           _MM_STORE_f64(&randZ[l][BLOCKSIZE*j], dRes,gvl);
       }
   }
+  ROI_END();
 }
 
 #endif

@@ -13,6 +13,9 @@
 #include "HJM.h"
 #include "HJM_type.h"
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 int HJM_SimPath_Yield(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdYield, FTYPE **ppdFactors,
 					  long *lRndSeed);
 int HJM_SimPath_Forward(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdForward, FTYPE *pdTotalDrift,
@@ -411,6 +414,7 @@ int Discount_Factors_Blocking_vector(FTYPE *pdDiscountFactors,
 			      FTYPE *pdRatePath,
 			      int BLOCKSIZE)
 {
+	ROI_START();
 	int i,j,b;				//looping variables
 	int iSuccess;			//return variable
 
@@ -451,6 +455,7 @@ int Discount_Factors_Blocking_vector(FTYPE *pdDiscountFactors,
 	} 
 	free_dvector(pdexpRes, 0,(iN-1)*BLOCKSIZE-1);
 	iSuccess = 1;
+	ROI_END();
 	return iSuccess;
 }
 

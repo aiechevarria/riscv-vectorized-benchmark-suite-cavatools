@@ -21,6 +21,8 @@
 #include <time.h>
 #include <sys/time.h>
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
 
 int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will store simulation results in the form:
 			  //Swaption Price
@@ -206,6 +208,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
       // Simulation
       
       #ifdef USE_RISCV_VECTOR
+            ROI_START();
             unsigned long int gvl = _MMR_VSETVL_E64M1(BLOCKSIZE_AUX);
             
             _MMR_f64    xpdSwapDiscountFactors;
@@ -237,6 +240,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
 
             _MM_STORE_f64(&dSumSimSwaptionPrice,xdSumSimSwaptionPrice,1);
             _MM_STORE_f64(&dSumSquareSimSwaptionPrice,xdSumSquareSimSwaptionPrice,1);
+            ROI_END();
       #else
 
       for (b=0;b<BLOCKSIZE_AUX;b++){

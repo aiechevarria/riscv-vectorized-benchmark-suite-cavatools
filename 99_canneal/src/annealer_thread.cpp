@@ -51,6 +51,9 @@ using std::endl;
 #include "../../common/vector_defines.h"
 #endif
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 //*****************************************************************************************
 //
 //*****************************************************************************************
@@ -69,9 +72,13 @@ void annealer_thread::Run()
     int temp_steps_completed=0;
 
     #ifdef USE_RISCV_VECTOR
+
+    ROI_START();
     unsigned long int gvl   = __riscv_vsetvlmax_e32m1();
     mask = (int*)malloc(gvl*sizeof(int));
     for(int i=0 ; i<=gvl ; i=i+1) { mask[i]=0x55555555; }
+    ROI_END();
+
     #endif // !USE_RISCV_VECTOR
 
     while(keep_going(temp_steps_completed, accepted_good_moves, accepted_bad_moves)){
@@ -138,6 +145,7 @@ annealer_thread::move_decision_t annealer_thread::accept_move(routing_cost_t del
 #ifdef USE_RISCV_VECTOR
 routing_cost_t annealer_thread::calculate_delta_routing_cost_vector(netlist_elem* a, netlist_elem* b/*, __epi_2xi1  xMask2*/)
 {
+    ROI_START();
     routing_cost_t delta_cost=0.0;
 
     int a_fan_size = a->fanin.size() + a->fanout.size();
@@ -156,7 +164,12 @@ routing_cost_t annealer_thread::calculate_delta_routing_cost_vector(netlist_elem
         //int* mask;
         //mask = (int*)malloc(gvl*sizeof(int));
         //for(int i=0 ; i<=gvl ; i=i+2) { mask[i]=1;  mask[i+1]=0; }
-        _MMR_MASK_i32  xMask = _MM_CAST_i1_i32(_MM_LOAD_i32((int *)&mask[0],gvl));
+
+        // Fix for compiling with GCC 13.2.0. Cava requires older compiler versions and the __MM_CAST_i1_i32 intrinsic is not present in 13.2.0 
+        _MMR_i32 loaded_mask = _MM_LOAD_i32((int *)&mask[0], gvl);
+        _MMR_MASK_i32 xMask = _MM_VMSEQ_VX_i32(loaded_mask, 1, gvl);
+        // _MMR_MASK_i32  xMask = _MM_CAST_i1_i32(_MM_LOAD_i32((int *)&mask[0],gvl));
+
         _MMR_i32 xAFanin_loc     = _MM_MERGE_i32(_MM_SET_i32(a_loc->y,gvl),_MM_SET_i32(a_loc->x,gvl),xMask,gvl);
         _MMR_i32 xBFanin_loc     = _MM_MERGE_i32(_MM_SET_i32(b_loc->y,gvl),_MM_SET_i32(b_loc->x,gvl),xMask,gvl);
 
@@ -167,6 +180,8 @@ routing_cost_t annealer_thread::calculate_delta_routing_cost_vector(netlist_elem
             delta_cost = delta_cost + b->swap_cost_vector(xBFanin_loc,xAFanin_loc,b_fan_size);
         }
     }
+
+    ROI_END();
 
     return delta_cost;
 }

@@ -14,6 +14,9 @@
 #include "../../common/vector_defines.h"
 #endif
 
+#define ROI_START() asm volatile("li a7, 0x777; ecall" ::: "a7")
+#define ROI_END()  asm volatile("li a7, 0x778; ecall" ::: "a7")
+
 #ifndef USE_RISCV_VECTOR
 
 void axpy_serial(double a, double *dx, double *dy, int n) {
@@ -26,6 +29,8 @@ void axpy_serial(double a, double *dx, double *dy, int n) {
 #else
 
 void axpy_vector(double a, double *dx, double *dy, int n) {
+  ROI_START();
+
   int i;
 
   long gvl = _MMR_VSETVL_E64M1(n);
@@ -39,6 +44,9 @@ void axpy_vector(double a, double *dx, double *dy, int n) {
 
     i += gvl;
   }
+
+
+  ROI_END();
 }
 
 #endif
