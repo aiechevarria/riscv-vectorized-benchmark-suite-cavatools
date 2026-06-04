@@ -220,8 +220,10 @@ void run_vector()
                 _MM_STORE_i32(&dst[n],xNextrow,gvl);
             }
         }
+
+        ROI_END();
     }
-    ROI_END();
+    
 
     long long end = get_time();
     printf("TIME TO FIND THE SMALLEST PATH: %f\n", elapsed_time(start, end));

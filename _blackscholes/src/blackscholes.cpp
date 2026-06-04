@@ -427,14 +427,13 @@ int bs_thread(void *tid_ptr) {
 #endif
 
 #ifdef USE_RISCV_VECTOR
+    ROI_START();
     int i, j, k;
     fptype priceDelta;
     int tid = *(int *)tid_ptr;
     int start = tid * (numOptions / nThreads);
     int end = start + (numOptions / nThreads);
 
-
-    ROI_START();
     unsigned long int gvl = __riscv_vsetvl_e32m1(end);
     //fptype* price;
     //price = (fptype*)malloc(gvl*sizeof(fptype));
@@ -470,9 +469,8 @@ int bs_thread(void *tid_ptr) {
                     numError ++;
                 }
             }
-
-            ROI_END();
 #endif
+          ROI_END();
         }
     }
 

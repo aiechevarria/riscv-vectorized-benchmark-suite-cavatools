@@ -256,9 +256,8 @@ void  kernel_cpu(	par_str par,
 				fA[i].z = _MM_VGETFIRST_f32(xfA_1_z);
 			} // for i
 
+			ROI_END();
 		} // for k
-
-		ROI_END();
 
 	} // for l
 	time4 = get_time();
