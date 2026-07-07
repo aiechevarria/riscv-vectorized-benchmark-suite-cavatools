@@ -124,6 +124,7 @@ void  kernel_cpu(	par_str par,
 	//			private(first_i, rA, fA) \
 	//			private(pointer, first_j, rB, qB) \
 	//			private(r2, u2, fs, vij, fxij, fyij, fzij, d)
+	ROI_START();
 	for(l=0; l<dim.number_boxes; l=l+1){
 
 		//------------------------------------------------------------------------------------------100
@@ -142,6 +143,7 @@ void  kernel_cpu(	par_str par,
 		//------------------------------------------------------------------------------------------100
 		//	Do for the # of (home+neighbor) boxes
 		//------------------------------------------------------------------------------------------100
+		
 		for (k=0; k<(1+box[l].nn); k++) 
 		{
 
@@ -173,7 +175,7 @@ void  kernel_cpu(	par_str par,
 			//	Do for the # of particles in home box
 			//----------------------------------------50
 			
-			ROI_START();
+			
 
 			_MMR_f32 xr2, xDOT, xu2, xvij;
 			_MMR_f32 xrB_v, xrB_x, xrB_y, xrB_z;
@@ -256,10 +258,12 @@ void  kernel_cpu(	par_str par,
 				fA[i].z = _MM_VGETFIRST_f32(xfA_1_z);
 			} // for i
 
-			ROI_END();
+
 		} // for k
+		
 
 	} // for l
+	ROI_END();
 	time4 = get_time();
 
 	//======================================================================================================================================================150

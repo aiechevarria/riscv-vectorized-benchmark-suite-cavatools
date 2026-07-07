@@ -444,6 +444,7 @@ int bs_thread(void *tid_ptr) {
     __parsec_thread_begin();
 #endif
 
+    ROI_START();
     for (j=0; j<NUM_RUNS; j++) {
 #ifdef ENABLE_OPENMP
 #pragma omp parallel for private(i, price, priceDelta)
@@ -453,10 +454,10 @@ int bs_thread(void *tid_ptr) {
 #endif //ENABLE_OPENMP
             // Calling main function to calculate option value based on Black & Scholes's
             // equation.
-            ROI_START();
             gvl = __riscv_vsetvl_e32m1(end-i);
             BlkSchlsEqEuroNoDiv_vector( &(prices[i]), gvl, &(sptprice[i]), &(strike[i]),
                                 &(rate[i]), &(volatility[i]), &(otime[i]), &(otype[i])/*,&(otype_d[i])*/, 0,gvl);
+                                
             //for (k=0; k<gvl; k++) {
             //  prices[i+k] = price[k];
             //}
@@ -470,9 +471,9 @@ int bs_thread(void *tid_ptr) {
                 }
             }
 #endif
-          ROI_END();
         }
     }
+    ROI_END();
 
 #ifdef ENABLE_PARSEC_HOOKS
   __parsec_thread_end();

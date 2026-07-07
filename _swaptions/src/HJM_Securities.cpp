@@ -114,10 +114,11 @@ void * worker(void *arg){
     end = nSwaptions;
        int BLOCK_SIZE_AUX;
     // 1 run for every swaption, HJM_Swaption_Blocking kernel can be vectorized because is related to Number of Simulations
-    for(int i=beg; i < end; i++) {
+    ROI_START();
 
+    for(int i=beg; i < end; i++) {
       #ifdef USE_RISCV_VECTOR
-        ROI_START();
+      
         // Vector seed to get the randon number with vector code
         unsigned long int gvl = _MMR_VSETVL_E64M1(NUM_TRIALS);
         swaption_seed_vector = (long*)malloc(gvl*sizeof(long));
@@ -125,7 +126,7 @@ void * worker(void *arg){
         swaption_seed_vector[j] = swaption_seed + j + (i * gvl);
         }
         BLOCK_SIZE_AUX = gvl;
-        ROI_END();
+        
       #else
         swaption_seed_vector = (long*)malloc(1*sizeof(long));
         swaption_seed_vector[0] = swaption_seed + i;
@@ -142,6 +143,8 @@ void * worker(void *arg){
        swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
        swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
      }
+
+    ROI_END();
    return NULL;
 }
 
