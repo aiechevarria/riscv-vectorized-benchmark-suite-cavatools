@@ -78,13 +78,12 @@ void kernel_jacobi_2d_vector(int tsteps,int n, DATA_TYPE **A,DATA_TYPE **B)
   // Load the constant to multiply at the end of the operation
   xConstant = _MM_SET_f64(0.20f, gvl);
   
-  // For all the elements on the matrix
+  // For all rows
   for (int i = 1; i <= size_y; i++) {
-    // Calculate the maximum computable number of elements
-    gvl = _MMR_VSETVL_E64M1(size_x - i + 1);
-    
     // For each column of those rows
     for (int j = 1; j <= size_x; j = j + gvl) {
+      // Calculate the maximum computable number of elements
+      gvl = _MMR_VSETVL_E64M1(size_x - j + 1);
 
       // Load the next column
       xUtop = _MM_LOAD_f64(&A[i - 1][j], gvl);
