@@ -11,3 +11,4 @@ FLAGS="-march=rv64gv \
 COMP="/opt/riscv-gcc-13.2.0/bin/riscv64-unknown-linux-gnu-g++"
 
 $COMP $FLAGS -o bin/matmul_cava.out src/matmul.c src/main.c
+$COMP $FLAGS -o bin/matmul512_cava.out src/matmul512.c src/main.c
