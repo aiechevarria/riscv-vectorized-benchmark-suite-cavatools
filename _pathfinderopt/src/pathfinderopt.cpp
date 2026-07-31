@@ -213,24 +213,30 @@ void run_vector()
         int aux,aux2;
         
         for (size_t t = 0; t < rows - 1; t++) {
-            aux = dst[0];
+            // To avoid XLOOKUP costs, scalars must be loaded into a vector register using the vload intrinsic
+            // and then moved to a scalar register by extracting the element with vmv 
+            aux = __riscv_vmv_x_s_i32m1_i32(_MM_LOAD_i32(&dst[0], 1));
 
-            // TODO 
-            // Same as in Jacobi, scalar loads and then VSLIDE happens 
-            // Should we optimize each benchmark or should we change the architecture ?
-            for(size_t n = 0; n < cols; n = n + gvl) {
-                gvl = __riscv_vsetvl_e32m1(cols-n);
-                xNextrow = _MM_LOAD_i32(&dst[n],gvl);
+            for (size_t n = 0; n < cols; n = n + gvl) {
+                gvl = __riscv_vsetvl_e32m1(cols - n);
+                xNextrow = _MM_LOAD_i32(&dst[n], gvl);
                 xSrc = xNextrow;
-                aux2 = (n+gvl >= cols) ?  dst[n+gvl-1] : dst[n+gvl];
-                xSrc_slideup = _MM_VSLIDE1UP_i32(xSrc,aux,gvl);
-                xSrc_slidedown = _MM_VSLIDE1DOWN_i32(xSrc,aux2,gvl);
-                xSrc = _MM_MIN_i32(xSrc,xSrc_slideup,gvl);
-                xSrc = _MM_MIN_i32(xSrc,xSrc_slidedown,gvl);
-                xNextrow = _MM_LOAD_i32(&wall[(t+1)*cols + n],gvl);
-                xNextrow = _MM_ADD_i32(xNextrow,xSrc,gvl);
-                aux = dst[n+gvl-1];
-                _MM_STORE_i32(&dst[n],xNextrow,gvl);
+
+                // Extract the second aux value
+                if (n + gvl >= cols) {
+                    aux2 = __riscv_vmv_x_s_i32m1_i32(_MM_LOAD_i32(&dst[n + gvl - 1], 1));
+                } else {
+                    aux2 = __riscv_vmv_x_s_i32m1_i32(_MM_LOAD_i32(&dst[n + gvl], 1));
+                }
+                
+                xSrc_slideup = _MM_VSLIDE1UP_i32(xSrc, aux, gvl);
+                xSrc_slidedown = _MM_VSLIDE1DOWN_i32(xSrc, aux2, gvl);
+                xSrc = _MM_MIN_i32(xSrc, xSrc_slideup, gvl);
+                xSrc = _MM_MIN_i32(xSrc, xSrc_slidedown, gvl);
+                xNextrow = _MM_LOAD_i32(&wall[(t + 1) * cols + n], gvl);
+                xNextrow = _MM_ADD_i32(xNextrow, xSrc, gvl);
+                aux = __riscv_vmv_x_s_i32m1_i32(_MM_LOAD_i32(&dst[n + gvl - 1], 1));
+                _MM_STORE_i32(&dst[n], xNextrow, gvl);
             }
         }
         

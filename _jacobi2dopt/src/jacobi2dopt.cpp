@@ -90,9 +90,9 @@ void kernel_jacobi_2d_vector(int tsteps,int n, DATA_TYPE **A,DATA_TYPE **B)
       xU = _MM_LOAD_f64(&A[i][j], gvl);
       xUbottom = _MM_LOAD_f64(&A[ i + 1][j], gvl);
       
-      // Fetch the left and right elements in a scalar way
-      izq = A[i][j - 1]; 
-      der = A[i][j + gvl];
+      // Fetch the left and right elements in a vector way and move them to scalar registers afterwards
+      izq = __riscv_vfmv_f_s_f64m1_f64(_MM_LOAD_f64(&A[i][j - 1], 1)); 
+      der = __riscv_vfmv_f_s_f64m1_f64(_MM_LOAD_f64(&A[i][j + gvl], 1 ));
 
       // Put the neighbouring left and right elements at the borders of the xU chunk and store them in separate vector registers for computation
       xUleft = _MM_VSLIDE1UP_f64(xU, izq, gvl);
@@ -188,13 +188,13 @@ int main(int argc, char** argv)
   }
   
   /* Initialize array(s). */
-  ROI_START();
   init_array(n,A,B);
   
   /* Start timer. */
   long long start = get_time();
   
   /* Run kernel. */
+  ROI_START();
   kernel_jacobi_2d(tsteps, n, A, B);
   ROI_END();
   
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
   long long end = get_time();
   printf("time: %lf\n", elapsed_time(start, end));
   #ifdef RESULT_PRINT
-  // output_printfile(n,A, outfilename );
+  output_printfile(n,A, outfilename );
   #endif  // RESULT_PRINT
   
   /* Be clean. */
