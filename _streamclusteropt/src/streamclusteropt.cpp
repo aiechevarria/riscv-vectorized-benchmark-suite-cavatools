@@ -95,11 +95,6 @@ static int nproc; //# of threads
 
 
 #ifdef TBB_VERSION
-tbb::cache_aligned_allocator<float> memoryFloat;
-tbb::cache_aligned_allocator<Point> memoryPoint;
-tbb::cache_aligned_allocator<long> memoryLong;
-tbb::cache_aligned_allocator<int> memoryInt;
-tbb::cache_aligned_allocator<bool> memoryBool;
 #endif
 
 
@@ -222,19 +217,19 @@ float pspeedy(Points *points, float z, long *kcenter, int pid, pthread_barrier_t
     static double* costs; //cost for each thread. 
     static int i;
 
+    ROI_START();
+
 #ifdef ENABLE_THREADS
     static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 #endif
 
     /* create center at first point, send it to itself */
-    ROI_START();
     for( int k = k1; k < k2; k++ )    {
         float distance = dist(points->p[k],points->p[0],points->dim );
         points->p[k].cost = distance * points->p[k].weight;
         points->p[k].assign=0;
     }
-    ROI_END();
 
     if( pid==0 )   {
         *kcenter = 1;
@@ -254,7 +249,6 @@ float pspeedy(Points *points, float z, long *kcenter, int pid, pthread_barrier_t
 #endif
             if( i >= points->num ) break;
 
-            ROI_START();
             for( int k = k1; k < k2; k++ )
             {
                 float distance = dist(points->p[i],points->p[k],points->dim);
@@ -264,7 +258,6 @@ float pspeedy(Points *points, float z, long *kcenter, int pid, pthread_barrier_t
                     points->p[k].assign=i;
                 }
             }
-            ROI_END();
 #ifdef ENABLE_THREADS
             pthread_barrier_wait(barrier);
             pthread_barrier_wait(barrier);
@@ -285,7 +278,6 @@ float pspeedy(Points *points, float z, long *kcenter, int pid, pthread_barrier_t
                 pthread_cond_broadcast(&cond);
 #endif
 
-                ROI_START();
                 for( int k = k1; k < k2; k++ )  {
                     float distance = dist(points->p[i],points->p[k],points->dim );
                     if( distance*points->p[k].weight < points->p[k].cost )  {
@@ -293,7 +285,6 @@ float pspeedy(Points *points, float z, long *kcenter, int pid, pthread_barrier_t
                         points->p[k].assign=i;
                     }
                 }
-                ROI_END();
 #ifdef ENABLE_THREADS
                 pthread_barrier_wait(barrier);
 #endif
@@ -338,6 +329,7 @@ float pspeedy(Points *points, float z, long *kcenter, int pid, pthread_barrier_t
     pthread_barrier_wait(barrier);
 #endif
 
+    ROI_END();
     return(totalcost);
 }
 
